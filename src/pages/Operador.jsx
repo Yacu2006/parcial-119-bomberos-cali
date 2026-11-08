@@ -1,72 +1,55 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import MapaOperador from '../mapa/MapaOperador.jsx'
-import { BARRIOS } from '../data/barrios.js'
-import { GRUPOS } from '../data/grupos.js'
+import ListaReportes from '../components/operador/ListaReportes.jsx'
+import DetalleReporte from '../components/operador/DetalleReporte.jsx'
 import { useReportes } from '../context/ReportesContext.jsx'
+import './reportar.css' // reutiliza .boton, .badge, .punto y .campo__control
+import './operador.css'
 
-const azar = (lista) => lista[Math.floor(Math.random() * lista.length)]
-
+// Pantalla 3: tablero del radio operador.
+// Mapa a la izquierda; a la derecha, la lista de reportes o el detalle del seleccionado.
+// Los reportes vienen del estado global: lo que el ciudadano envía aparece aquí,
+// y lo que el operador cambia lo ve el ciudadano.
 export default function Operador() {
-  // Los reportes ya NO son de prueba: vienen del estado global (Context)
-  const { reportes, agregarReporte, limpiarReportes } = useReportes()
+  const { reportes, limpiarReportes } = useReportes()
   const [seleccionadoId, setSeleccionadoId] = useState(null)
-  const seleccionado = reportes.find((r) => r.id === seleccionadoId)
+  const seleccionado = reportes.find((r) => r.id === seleccionadoId) ?? null
 
-  // TEMPORAL: crea un reporte ficticio para probar el estado global.
-  // Se elimina cuando exista el formulario de /reportar.
-  const crearDePrueba = () =>
-    agregarReporte({
-      nombres: 'Prueba',
-      apellidos: 'Ficticio',
-      telefono: '3000000000',
-      grupo: azar(GRUPOS).codigo,
-      queVe: 'Reporte de prueba',
-      direccion: 'Calle 1 # 1-1',
-      barrio: azar(BARRIOS).nombre,
-      referencia: 'Sin referencia',
-      edificio: 'No aplica',
-    })
+  const reiniciar = () => {
+    if (window.confirm('¿Borrar todos los reportes de la demostración?')) {
+      limpiarReportes()
+      setSeleccionadoId(null)
+    }
+  }
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: '100vh' }}>
-      <MapaOperador
-        reportes={reportes}
-        seleccionadoId={seleccionadoId}
-        onSeleccionar={setSeleccionadoId}
-      />
-      <aside style={{ padding: 16, background: '#0f172a', color: '#e2e8f0', overflowY: 'auto', borderLeft: '1px solid #1e293b' }}>
-        <h2>Radio operador</h2>
+    <div className="op">
+      <div className="op__mapa">
+        <MapaOperador reportes={reportes} seleccionadoId={seleccionadoId} onSeleccionar={setSeleccionadoId} />
+      </div>
 
-        {/* TEMPORAL: botones de prueba del estado global */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <button onClick={crearDePrueba}>+ Reporte de prueba</button>
-          <button onClick={limpiarReportes}>Borrar todos</button>
-        </div>
+      <aside className="op__panel">
+        <header className="op__cab">
+          <p className="op__marca">Línea 119 · Bomberos Cali</p>
+          <h1>Radio operador</h1>
+          <nav aria-label="Navegación">
+            <Link to="/">Inicio</Link> · <Link to="/reportar">Pantalla del ciudadano</Link>
+          </nav>
+        </header>
 
-        {/* Lista mínima: al hacer clic, el mapa vuela al reporte.
-            TODO (estudiantes): lista completa, detalle, llamar/validar y despacho. */}
-        {reportes.length === 0 && <p style={{ color: '#94a3b8' }}>Aún no hay reportes.</p>}
-        <ul style={{ listStyle: 'none', padding: 0 }}>
-          {reportes.map((r) => (
-            <li key={r.id}>
-              <button
-                onClick={() => setSeleccionadoId(r.id)}
-                style={{
-                  width: '100%', textAlign: 'left', margin: '4px 0', padding: '8px 10px', borderRadius: 8,
-                  border: '1px solid #334155', cursor: 'pointer', color: '#e2e8f0',
-                  background: r.id === seleccionadoId ? '#1e3a5f' : '#111827',
-                }}
-              >
-                #{r.radicado} · {r.grupo} · {r.barrio}
-                <br />
-                <small style={{ color: '#94a3b8' }}>{r.estado}</small>
-              </button>
-            </li>
-          ))}
-        </ul>
-        {seleccionado && <p>Seleccionado: reporte #{seleccionado.radicado}</p>}
-        <Link to="/" style={{ color: '#7dd3fc' }}>Volver a la landing</Link>
+        {seleccionado ? (
+          // key: al cambiar de reporte, el detalle empieza con sus selectores limpios
+          <DetalleReporte key={seleccionado.id} reporte={seleccionado} onVolver={() => setSeleccionadoId(null)} />
+        ) : (
+          <ListaReportes reportes={reportes} onSeleccionar={setSeleccionadoId} />
+        )}
+
+        {reportes.length > 0 && (
+          <button type="button" className="op__reiniciar" onClick={reiniciar}>
+            Reiniciar demostración
+          </button>
+        )}
       </aside>
     </div>
   )

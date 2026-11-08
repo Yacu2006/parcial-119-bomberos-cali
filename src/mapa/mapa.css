@@ -18,8 +18,7 @@
   box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6), 0 0 18px var(--color);
 }
 
-/* Animación de pulso YA ESCRITA.
-   TODO (estudiantes): aplicar la clase "pin--pulso" a los reportes en estado Recibido. */
+/* Animación de pulso: se aplica a los reportes en estado Recibido (ver estiloPin.js). */
 .pin--pulso::before {
   content: '';
   position: absolute;
@@ -33,8 +32,21 @@
   to { transform: scale(1.6); opacity: 0; }
 }
 
-/* TODO (estudiantes): crear una clase "pin--apagado" (gris, opacidad baja)
-   para los reportes Cerrado o Descartado. */
+/* Reporte con unidad despachada: borde morado (el color del estado "Unidad despachada") */
+.pin--despachado {
+  border-color: #7c3aed;
+}
+
+/* Reporte Cerrado o Descartado: pin gris y tenue, sin pulso */
+.pin--apagado {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+/* Modo oscuro sin API key: oscurece los mapas de OpenStreetMap con un filtro */
+.tiles-oscuro {
+  filter: invert(100%) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6);
+}
 
 /* Leyenda y controles sobre el mapa */
 .leyenda {
@@ -47,8 +59,3 @@
 }
 .leyenda__fila { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
 .leyenda__punto { width: 10px; height: 10px; border-radius: 50%; }
-
-/* Modo oscuro sin API key: oscurece los mapas de OpenStreetMap con un filtro */
-.tiles-oscuro {
-  filter: invert(100%) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6);
-}

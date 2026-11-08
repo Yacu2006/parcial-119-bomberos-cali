@@ -4,12 +4,14 @@ import 'leaflet/dist/leaflet.css'
 import './mapa.css'
 import { crearIcono } from './iconos.js'
 import { GRUPOS, colorDeGrupo } from '../data/grupos.js'
+import { clasesDePin } from './estiloPin.js'
+import EstadoBadge from '../components/EstadoBadge.jsx'
 
 const CENTRO_CALI = [3.437, -76.522]
 
 // Mapa REAL de Cali (OpenStreetMap a través de Leaflet). No necesita API key.
 // Props:
-//   reportes: [{ id, grupo, lat, lng, estado, barrio }]
+//   reportes: los reportes del estado global (id, grupo, lat, lng, estado, barrio, nombres, queVe…)
 //   seleccionadoId: id del reporte seleccionado (o null)
 //   onSeleccionar: (id) => void
 export default function MapaOperador({ reportes = [], seleccionadoId = null, onSeleccionar }) {
@@ -26,26 +28,36 @@ export default function MapaOperador({ reportes = [], seleccionadoId = null, onS
           />
         </LayersControl.BaseLayer>
         <LayersControl.BaseLayer name="Oscuro (centro de control)">
-        <TileLayer
+          {/* Mismo mapa de OpenStreetMap, oscurecido con un filtro CSS (.tiles-oscuro): no requiere API key */}
+          <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             className="tiles-oscuro"
-  />
-</LayersControl.BaseLayer>
+          />
+        </LayersControl.BaseLayer>
       </LayersControl>
 
       {reportes.map((r) => (
         <Marker
           key={r.id}
           position={[r.lat, r.lng]}
-          icon={crearIcono(colorDeGrupo(r.grupo), { seleccionado: r.id === seleccionadoId })}
+          icon={crearIcono(colorDeGrupo(r.grupo), {
+            seleccionado: r.id === seleccionadoId,
+            clases: clasesDePin(r.estado), // pulso, despachado o apagado según el estado
+          })}
+          zIndexOffset={r.id === seleccionadoId ? 1000 : 0} // el seleccionado queda encima
           eventHandlers={{ click: () => onSeleccionar?.(r.id) }}
         >
-          {/* TODO (estudiantes): completar el Popup con nombre, qué ve y estado. */}
           <Popup>
-            <strong>{r.grupo}</strong> · {r.barrio}
+            <strong>
+              {r.nombres} {r.apellidos}
+            </strong>
             <br />
-            {r.estado}
+            {r.grupo} · {GRUPOS.find((g) => g.codigo === r.grupo)?.nombre}
+            <br />
+            <em>«{r.queVe}»</em>
+            <br />
+            {r.barrio} · <EstadoBadge estado={r.estado} />
           </Popup>
         </Marker>
       ))}
@@ -57,11 +69,16 @@ export default function MapaOperador({ reportes = [], seleccionadoId = null, onS
 }
 
 // Cuando se selecciona un reporte (desde la lista o el mapa), el mapa vuela hasta él.
+// El efecto depende del id y de las coordenadas (no del objeto completo): así, cuando
+// el operador valida o despacha, el reporte cambia de estado pero el mapa NO vuela otra vez.
 function IrAlSeleccionado({ reporte }) {
   const map = useMap()
+  const id = reporte?.id
+  const lat = reporte?.lat
+  const lng = reporte?.lng
   useEffect(() => {
-    if (reporte) map.flyTo([reporte.lat, reporte.lng], 16, { duration: 0.8 })
-  }, [reporte, map])
+    if (id) map.flyTo([lat, lng], 16, { duration: 0.8 })
+  }, [id, lat, lng, map])
   return null
 }
 

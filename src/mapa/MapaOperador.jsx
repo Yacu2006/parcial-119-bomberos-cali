@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import './mapa.css'
 import { crearIcono } from './iconos.js'
 import { GRUPOS, colorDeGrupo } from '../data/grupos.js'
-import { clasesDePin } from './estiloPin.js'
+import { clasesDePin, tieneSello } from './estiloPin.js'
 import EstadoBadge from '../components/EstadoBadge.jsx'
 
 const CENTRO_CALI = [3.437, -76.522]
@@ -44,6 +44,7 @@ export default function MapaOperador({ reportes = [], seleccionadoId = null, onS
           icon={crearIcono(colorDeGrupo(r.grupo), {
             seleccionado: r.id === seleccionadoId,
             clases: clasesDePin(r.estado), // pulso, despachado o apagado según el estado
+            sello: tieneSello(r.estado), // verificado verde en los casos cerrados
           })}
           zIndexOffset={r.id === seleccionadoId ? 1000 : 0} // el seleccionado queda encima
           eventHandlers={{ click: () => onSeleccionar?.(r.id) }}

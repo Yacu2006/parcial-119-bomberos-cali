@@ -43,6 +43,17 @@
   opacity: 0.45;
 }
 
+/* Sello verde de "verificado" en la esquina del pin de un caso cerrado.
+   Es hermano del pin (no hijo), por eso no se ve gris ni tenue como él. */
+.pin-sello {
+  position: absolute;
+  top: -8px;
+  right: -9px;
+  display: block;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+}
+
 /* Modo oscuro sin API key: oscurece los mapas de OpenStreetMap con un filtro */
 .tiles-oscuro {
   filter: invert(100%) hue-rotate(180deg) brightness(0.9) contrast(0.9) saturate(0.6);

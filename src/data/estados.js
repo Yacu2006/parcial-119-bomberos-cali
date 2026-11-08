@@ -10,5 +10,14 @@ export const ESTADOS = {
   DESCARTADO: 'Descartado',
 }
 
+// Color de cada estado (etiquetas EstadoBadge)
+export const COLOR_ESTADO = {
+  [ESTADOS.RECIBIDO]: '#d97706',
+  [ESTADOS.VALIDADO]: '#2563eb',
+  [ESTADOS.DESPACHADO]: '#7c3aed',
+  [ESTADOS.CERRADO]: '#16a34a',
+  [ESTADOS.DESCARTADO]: '#6b7280',
+}
+
 // Unidades que el operador puede despachar
 export const UNIDADES = ['Máquina', 'Rescate', 'Ambulancia', 'HazMat']

@@ -16,6 +16,7 @@ import { ESTADOS, UNIDADES } from '../data/estados.js'
 // ─────────────────────────────────────────────────────────────────────────────
 
 const CLAVE = 'bomberos119:reportes' // nombre con el que se guarda en localStorage
+const CLAVE_MIO = 'bomberos119:mi-reporte' // id del último reporte enviado desde este navegador
 
 // 1) El "contenedor" del Context. Vale null hasta que un Provider lo llene.
 const ReportesContext = createContext(null)
@@ -45,15 +46,42 @@ function guardarReportes(reportes) {
   }
 }
 
+// Lee el id del último reporte que envió ESTE ciudadano (o null)
+function cargarMiId() {
+  try {
+    const id = Number(localStorage.getItem(CLAVE_MIO))
+    return Number.isInteger(id) && id > 0 ? id : null
+  } catch {
+    return null
+  }
+}
+
 // 2) El Provider: envuelve la app y reparte el estado a todos sus hijos.
 export function ReportesProvider({ children }) {
   // useState con una FUNCIÓN: React la ejecuta una sola vez, al crear el componente
   const [reportes, setReportes] = useState(cargarReportes)
 
+  // Id del reporte que este ciudadano acaba de enviar. Sirve para que /reportar
+  // pueda volver a mostrar la confirmación (y su estado) aunque se cambie de página.
+  const [miReporteId, setMiReporteId] = useState(cargarMiId)
+
   // Cada vez que cambia la lista, se guarda en localStorage
   useEffect(() => {
     guardarReportes(reportes)
   }, [reportes])
+
+  useEffect(() => {
+    try {
+      if (miReporteId) localStorage.setItem(CLAVE_MIO, String(miReporteId))
+      else localStorage.removeItem(CLAVE_MIO)
+    } catch {
+      // sin persistencia, la app sigue funcionando
+    }
+  }, [miReporteId])
+
+  // El reporte completo y ACTUALIZADO del ciudadano (null si no hay o fue borrado).
+  // Se calcula a partir de la lista, por eso su estado cambia cuando el operador lo actualiza.
+  const miReporte = reportes.find((r) => r.id === miReporteId) ?? null
 
   // Actualiza UN reporte, pero solo si está en un estado permitido.
   // Así se respeta el flujo (p. ej. no se puede despachar algo sin validar)
@@ -74,6 +102,8 @@ export function ReportesProvider({ children }) {
     () => ({
       reportes,
 
+      miReporte, // el reporte del ciudadano, siempre actualizado
+
       // Ciudadano: crea un reporte nuevo. Recibe los datos del formulario y
       // devuelve el reporte creado (con su radicado) para mostrar la confirmación.
       agregarReporte: (datos) => {
@@ -93,8 +123,12 @@ export function ReportesProvider({ children }) {
           actualizadoEn: ahora,
         }
         setReportes((anteriores) => [...anteriores, nuevo])
+        setMiReporteId(id)
         return nuevo
       },
+
+      // Ciudadano: deja de mostrar su confirmación para poder hacer otro reporte
+      nuevoReporte: () => setMiReporteId(null),
 
       // Operador: Recibido → Validado (puede corregir el grupo)
       validarReporte: (id, grupo) =>
@@ -116,10 +150,13 @@ export function ReportesProvider({ children }) {
       cerrarReporte: (id) => actualizar(id, [ESTADOS.DESPACHADO], { estado: ESTADOS.CERRADO }),
 
       // Para pruebas y demostraciones: borra todos los reportes
-      limpiarReportes: () => setReportes([]),
+      limpiarReportes: () => {
+        setReportes([])
+        setMiReporteId(null)
+      },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [reportes]
+    [reportes, miReporte]
   )
 
   return <ReportesContext.Provider value={valor}>{children}</ReportesContext.Provider>

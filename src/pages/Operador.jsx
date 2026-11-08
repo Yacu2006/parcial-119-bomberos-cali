@@ -2,42 +2,53 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import MapaOperador from '../mapa/MapaOperador.jsx'
 import { BARRIOS } from '../data/barrios.js'
+import { GRUPOS } from '../data/grupos.js'
+import { useReportes } from '../context/ReportesContext.jsx'
 
-// Reportes de PRUEBA para ver el mapa funcionando.
-// TODO (estudiantes): reemplazarlos por los reportes del estado global
-// (los que envía el ciudadano desde /reportar).
-const REPORTES_DEMO = [
-  { id: 1, grupo: 100, barrio: 'San Antonio', estado: 'Recibido' },
-  { id: 2, grupo: 300, barrio: 'Siloé', estado: 'Recibido' },
-  { id: 3, grupo: 400, barrio: 'Valle del Lili', estado: 'Unidad despachada' },
-  { id: 4, grupo: 800, barrio: 'Floralia', estado: 'Recibido' },
-  { id: 5, grupo: 300, barrio: 'El Poblado', estado: 'Validado' },
-  { id: 6, grupo: 100, barrio: 'Chipichape', estado: 'Recibido' },
-  { id: 7, grupo: 500, barrio: 'Ciudad Jardín', estado: 'Cerrado' },
-  { id: 8, grupo: 200, barrio: 'Junín', estado: 'Recibido' },
-  { id: 9, grupo: 900, barrio: 'Meléndez', estado: 'Recibido' },
-].map((r) => {
-  const b = BARRIOS.find((x) => x.nombre === r.barrio)
-  return { ...r, lat: b.lat, lng: b.lng }
-})
+const azar = (lista) => lista[Math.floor(Math.random() * lista.length)]
 
 export default function Operador() {
+  // Los reportes ya NO son de prueba: vienen del estado global (Context)
+  const { reportes, agregarReporte, limpiarReportes } = useReportes()
   const [seleccionadoId, setSeleccionadoId] = useState(null)
-  const seleccionado = REPORTES_DEMO.find((r) => r.id === seleccionadoId)
+  const seleccionado = reportes.find((r) => r.id === seleccionadoId)
+
+  // TEMPORAL: crea un reporte ficticio para probar el estado global.
+  // Se elimina cuando exista el formulario de /reportar.
+  const crearDePrueba = () =>
+    agregarReporte({
+      nombres: 'Prueba',
+      apellidos: 'Ficticio',
+      telefono: '3000000000',
+      grupo: azar(GRUPOS).codigo,
+      queVe: 'Reporte de prueba',
+      direccion: 'Calle 1 # 1-1',
+      barrio: azar(BARRIOS).nombre,
+      referencia: 'Sin referencia',
+      edificio: 'No aplica',
+    })
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: '100vh' }}>
       <MapaOperador
-        reportes={REPORTES_DEMO}
+        reportes={reportes}
         seleccionadoId={seleccionadoId}
         onSeleccionar={setSeleccionadoId}
       />
       <aside style={{ padding: 16, background: '#0f172a', color: '#e2e8f0', overflowY: 'auto', borderLeft: '1px solid #1e293b' }}>
         <h2>Radio operador</h2>
-        {/* Lista mínima de ejemplo: al hacer clic, el mapa vuela al reporte.
+
+        {/* TEMPORAL: botones de prueba del estado global */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <button onClick={crearDePrueba}>+ Reporte de prueba</button>
+          <button onClick={limpiarReportes}>Borrar todos</button>
+        </div>
+
+        {/* Lista mínima: al hacer clic, el mapa vuela al reporte.
             TODO (estudiantes): lista completa, detalle, llamar/validar y despacho. */}
+        {reportes.length === 0 && <p style={{ color: '#94a3b8' }}>Aún no hay reportes.</p>}
         <ul style={{ listStyle: 'none', padding: 0 }}>
-          {REPORTES_DEMO.map((r) => (
+          {reportes.map((r) => (
             <li key={r.id}>
               <button
                 onClick={() => setSeleccionadoId(r.id)}
@@ -47,14 +58,14 @@ export default function Operador() {
                   background: r.id === seleccionadoId ? '#1e3a5f' : '#111827',
                 }}
               >
-                #{r.id} · {r.grupo} · {r.barrio}
+                #{r.radicado} · {r.grupo} · {r.barrio}
                 <br />
                 <small style={{ color: '#94a3b8' }}>{r.estado}</small>
               </button>
             </li>
           ))}
         </ul>
-        {seleccionado && <p>Seleccionado: reporte #{seleccionado.id}</p>}
+        {seleccionado && <p>Seleccionado: reporte #{seleccionado.radicado}</p>}
         <Link to="/" style={{ color: '#7dd3fc' }}>Volver a la landing</Link>
       </aside>
     </div>

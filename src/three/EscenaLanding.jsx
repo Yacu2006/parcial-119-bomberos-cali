@@ -1,36 +1,70 @@
-import { Canvas, useFrame } from '@react-three/fiber'
-import { OrbitControls } from '@react-three/drei'
-import { useRef } from 'react'
+import { Component, useState } from 'react'
+import { Canvas } from '@react-three/fiber'
+import CamionBomberos from './CamionBomberos.jsx'
+import './escena.css'
 
-// Escena 3D de la landing con React Three Fiber.
-// Esto es solo un punto de partida (una "sirena" que gira) para comprobar que R3F funciona.
-// TODO (estudiantes): reemplazarla por su propia escena (sección 5 del enunciado).
-function Sirena() {
-  const ref = useRef()
-  useFrame((_, delta) => {
-    ref.current.rotation.y += delta * 2
-  })
+// Escena 3D de la landing (React Three Fiber).
+//   <Canvas>      crea la escena, la cámara y el renderizador WebGL
+//   luces         sin luz, los materiales "standard" se ven negros
+//   CamionBomberos nuestro componente 3D propio (ver CamionBomberos.jsx)
+// El estado `alarma` vive aquí (y no dentro del camión) para que lo compartan
+// el click sobre el camión 3D y el botón normal de HTML que hay debajo.
+
+// Piso circular: un disco oscuro con un aro que se pone rojo cuando suena la alarma
+function Piso({ alarma }) {
   return (
-    <group ref={ref}>
-      <mesh position={[0, 0.5, 0]}>
-        <cylinderGeometry args={[0.5, 0.6, 1, 32]} />
-        <meshStandardMaterial color="#dc2626" emissive="#dc2626" emissiveIntensity={0.4} />
+    <group position={[0, -0.02, 0]}>
+      <mesh>
+        <cylinderGeometry args={[2.9, 2.9, 0.1, 64]} />
+        <meshStandardMaterial color="#292524" roughness={0.9} />
       </mesh>
-      <mesh position={[0, -0.15, 0]}>
-        <cylinderGeometry args={[0.8, 0.8, 0.3, 32]} />
-        <meshStandardMaterial color="#334155" />
+      <mesh position={[0, 0.06, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[2.7, 2.85, 64]} />
+        <meshStandardMaterial
+          color={alarma ? '#ef4444' : '#78716c'}
+          emissive={alarma ? '#ef4444' : '#000000'}
+          emissiveIntensity={alarma ? 1.2 : 0}
+        />
       </mesh>
     </group>
   )
 }
 
+// Si el navegador no soporta WebGL, R3F lanza un error que dejaría la landing en blanco.
+// Este "límite de error" lo atrapa y muestra un mensaje; el resto de la página sigue viva.
+class LimiteEscena extends Component {
+  state = { fallo: false }
+  static getDerivedStateFromError() {
+    return { fallo: true }
+  }
+  render() {
+    if (this.state.fallo) {
+      return <p className="escena__error">No se pudo cargar la escena 3D en este navegador.</p>
+    }
+    return this.props.children
+  }
+}
+
 export default function EscenaLanding() {
+  const [alarma, setAlarma] = useState(false)
+  const alternar = () => setAlarma((a) => !a)
+
   return (
-    <Canvas camera={{ position: [0, 1.5, 3.5], fov: 45 }} style={{ height: 320 }}>
-      <ambientLight intensity={0.6} />
-      <directionalLight position={[3, 4, 2]} intensity={1.2} />
-      <Sirena />
-      <OrbitControls enableZoom={false} />
-    </Canvas>
+    <div className="escena">
+      <LimiteEscena>
+        <Canvas camera={{ position: [0, 2.6, 7], fov: 40 }} dpr={[1, 2]}>
+          <ambientLight intensity={0.8} />
+          <hemisphereLight args={['#ffffff', '#44403c', 0.6]} />
+          <directionalLight position={[4, 6, 3]} intensity={1.6} />
+          <Piso alarma={alarma} />
+          <CamionBomberos alarma={alarma} onToggle={alternar} />
+        </Canvas>
+      </LimiteEscena>
+
+      {/* Botón HTML: mismo efecto que el click en el camión, útil en celular y con teclado */}
+      <button type="button" className="escena__boton" onClick={alternar} aria-pressed={alarma}>
+        {alarma ? 'Apagar sirena' : 'Toca el camión: activar sirena'}
+      </button>
+    </div>
   )
 }

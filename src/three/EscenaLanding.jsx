@@ -1,5 +1,5 @@
-import { Component, useState } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Component, useEffect, useState } from 'react'
+import { Canvas, useThree } from '@react-three/fiber'
 import CamionBomberos from './CamionBomberos.jsx'
 import './escena.css'
 
@@ -30,6 +30,18 @@ function Piso({ alarma }) {
   )
 }
 
+// Si el recuadro de la escena es angosto (celular, ventana pequeña), la cámara se aleja
+// un poco para que el piso y el camión no se recorten por los lados.
+// El factor k solo acerca o aleja la cámara sobre la misma línea de visión.
+function AjusteCamara() {
+  const { camera, size } = useThree()
+  useEffect(() => {
+    const k = Math.max(1, 1.35 / (size.width / size.height))
+    camera.position.set(0, 2.6 * k, 7 * k)
+  }, [camera, size])
+  return null
+}
+
 // Si el navegador no soporta WebGL, R3F lanza un error que dejaría la landing en blanco.
 // Este "límite de error" lo atrapa y muestra un mensaje; el resto de la página sigue viva.
 class LimiteEscena extends Component {
@@ -53,6 +65,7 @@ export default function EscenaLanding() {
     <div className="escena">
       <LimiteEscena>
         <Canvas camera={{ position: [0, 2.6, 7], fov: 40 }} dpr={[1, 2]}>
+          <AjusteCamara />
           <ambientLight intensity={0.8} />
           <hemisphereLight args={['#ffffff', '#44403c', 0.6]} />
           <directionalLight position={[4, 6, 3]} intensity={1.6} />

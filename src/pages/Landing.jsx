@@ -18,6 +18,11 @@ export default function Landing() {
         <header className="land__marca">
           <span className="land__logo" aria-hidden="true">119</span>
           <span>Bomberos Cali · Línea 119</span>
+          {/* Acceso rápido al tablero (el del pie de página también se conserva) */}
+          <Link to="/operador" className="land__acceso-op">
+            <span className="land__acceso-largo">Acceso radio operador</span>
+            <span className="land__acceso-corto">Operador</span>
+          </Link>
         </header>
 
         <div className="land__rejilla">
@@ -43,6 +48,7 @@ export default function Landing() {
             </a>
           </div>
 
+          <small className="land__nota">Prototipo académico: no atiende emergencias reales.</small>
         </div>
       </section>
 

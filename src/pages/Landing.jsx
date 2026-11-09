@@ -48,7 +48,6 @@ export default function Landing() {
             </a>
           </div>
 
-          <small className="land__nota">Prototipo académico: no atiende emergencias reales.</small>
         </div>
       </section>
 

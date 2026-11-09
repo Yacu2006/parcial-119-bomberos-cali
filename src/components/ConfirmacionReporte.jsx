@@ -101,8 +101,7 @@ export default function ConfirmacionReporte({ reporte, onNuevo }) {
       )}
 
       <p className="confirmacion__nota">
-        Esta pantalla se actualiza cuando el operador cambia el estado. Prototipo académico: en una
-        emergencia real llama al <a href="tel:119">119</a>.
+        Esta pantalla se actualiza cuando el operador cambia el estado.
       </p>
 
       <div className="confirmacion__acciones">

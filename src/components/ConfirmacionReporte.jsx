@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom'
 import { GRUPOS, colorDeGrupo } from '../data/grupos.js'
 import { ESTADOS } from '../data/estados.js'
+import { useReportes } from '../context/ReportesContext.jsx'
 import EstadoBadge from './EstadoBadge.jsx'
+import './aviso-info.css'
 
 const PASOS = [ESTADOS.RECIBIDO, ESTADOS.VALIDADO, ESTADOS.DESPACHADO, ESTADOS.CERRADO]
 
@@ -29,6 +31,8 @@ const formatear = (iso) => new Date(iso).toLocaleString('es-CO', { dateStyle: 'm
 // `reporte` viene del Context, así que cuando el operador cambia el estado
 // esta pantalla se actualiza sola.
 export default function ConfirmacionReporte({ reporte, onNuevo }) {
+  const { marcarInfoVista } = useReportes()
+  const info = reporte.infoSolicitada // aviso del operador (si lo hay)
   const grupo = GRUPOS.find((g) => g.codigo === reporte.grupo)
   const descartado = reporte.estado === ESTADOS.DESCARTADO
   const indice = PASOS.indexOf(reporte.estado)
@@ -70,7 +74,21 @@ export default function ConfirmacionReporte({ reporte, onNuevo }) {
         )}
       </dl>
 
+      {/* Aviso del operador: aparece cuando pulsa «Solicitar más información» */}
+      {info && !info.vistoEn && (
+        <div className="aviso-info" role="alert">
+          <strong>El operador necesita más información</strong>
+          <p>{info.mensaje}</p>
+          <small>Solicitado: {formatear(info.solicitadoEn)}</small>
+          <button type="button" className="boton boton--principal" onClick={() => marcarInfoVista(reporte.id)}>
+            Entendido
+          </button>
+        </div>
+      )}
+
       <p className="confirmacion__mensaje">{mensajeDe(reporte)}</p>
+
+      {info?.vistoEn && <p className="aviso-info__previo">Último aviso del operador: «{info.mensaje}»</p>}
 
       {!descartado && (
         <ol className="pasos" aria-label="Progreso del reporte">
@@ -83,7 +101,8 @@ export default function ConfirmacionReporte({ reporte, onNuevo }) {
       )}
 
       <p className="confirmacion__nota">
-        Esta pantalla se actualiza cuando el operador cambia el estado.
+        Esta pantalla se actualiza cuando el operador cambia el estado. Prototipo académico: en una
+        emergencia real llama al <a href="tel:119">119</a>.
       </p>
 
       <div className="confirmacion__acciones">

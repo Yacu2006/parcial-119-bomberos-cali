@@ -9,7 +9,7 @@ import { ESTADOS, UNIDADES } from '../data/estados.js'
 // sola lista, guardada aquí. Las tres pantallas la leen y la modifican a través
 // de este Context:
 //   /reportar  → agregarReporte(...)
-//   /operador  → validarReporte / descartarReporte / despacharReporte / cerrarReporte
+//   /operador  → validarReporte / descartarReporte / despacharReporte / cerrarReporte / solicitarInformacion
 //   ciudadano  → lee el reporte para ver su estado actualizado
 //
 // El Context NO dibuja nada: solo guarda datos y ofrece funciones para cambiarlos.
@@ -148,6 +148,23 @@ export function ReportesProvider({ children }) {
 
       // Operador: Unidad despachada → Cerrado
       cerrarReporte: (id) => actualizar(id, [ESTADOS.DESPACHADO], { estado: ESTADOS.CERRADO }),
+
+      // Operador: pide más información. El aviso queda dentro del reporte (infoSolicitada)
+      // y aparece en la pantalla del ciudadano. Solo en casos aún abiertos.
+      solicitarInformacion: (id, mensaje) =>
+        actualizar(id, [ESTADOS.RECIBIDO, ESTADOS.VALIDADO, ESTADOS.DESPACHADO], {
+          infoSolicitada: { mensaje, solicitadoEn: new Date().toISOString(), vistoEn: null },
+        }),
+
+      // Ciudadano: pulsa «Entendido». El operador ve que el aviso ya fue visto.
+      marcarInfoVista: (id) =>
+        setReportes((anteriores) =>
+          anteriores.map((r) =>
+            r.id === id && r.infoSolicitada && !r.infoSolicitada.vistoEn
+              ? { ...r, infoSolicitada: { ...r.infoSolicitada, vistoEn: new Date().toISOString() } }
+              : r
+          )
+        ),
 
       // Para pruebas y demostraciones: borra todos los reportes
       limpiarReportes: () => {

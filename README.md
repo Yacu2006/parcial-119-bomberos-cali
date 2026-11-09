@@ -42,6 +42,13 @@ Todo corre en el navegador (sin backend): el estado se comparte entre pantallas 
 | `/reportar` | Ciudadano | Formulario controlado con validación, hasta 3 fotos con miniaturas, confirmación con radicado y estado en vivo |
 | `/operador` | Radio operador | Mapa real (Leaflet + OpenStreetMap), lista y detalle del reporte, validar / descartar / despachar / cerrar |
 
+## Extra implementado: «Solicitar más información»
+
+En el detalle del reporte, el operador elige un mensaje de una lista (por ejemplo «Envía otra foto de la emergencia, si es seguro hacerlo») y pulsa **Solicitar más información**. En la pantalla del ciudadano aparece un aviso destacado con ese mensaje y un botón **Entendido**; al pulsarlo, el operador ve que el ciudadano ya vio el aviso.
+
+- El aviso se guarda dentro del reporte (`infoSolicitada`: mensaje, hora y si fue visto), así que viaja por el mismo estado global y por `localStorage`.
+- Solo se puede pedir en casos abiertos (Recibido, Validado o Unidad despachada) y mientras no haya una solicitud pendiente. Esa regla está en el Context (`solicitarInformacion`), igual que las demás.
+
 ## Decisiones técnicas
 
 **Estado global (`src/context/ReportesContext.jsx`).** Una sola lista de reportes vive en un Context y las tres pantallas la usan con el hook `useReportes()`. Cada cambio se guarda en `localStorage`. El Context también protege el flujo de estados: `Recibido → Validado → Unidad despachada → Cerrado` (o `Descartado` desde Recibido). Una función como `despacharReporte` solo actúa si el reporte está en el estado anterior correcto, así que **no se puede despachar sin validar** aunque una pantalla se equivoque.

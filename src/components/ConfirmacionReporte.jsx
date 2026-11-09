@@ -112,6 +112,10 @@ export default function ConfirmacionReporte({ reporte, onNuevo }) {
         <Link to="/" className="boton boton--secundario">
           Volver al inicio
         </Link>
+                {/* Atajo para la demostración: lleva directo al tablero del operador */}
+        <Link to="/operador" className="boton boton--principal">
+          Vista Operador
+        </Link>
       </div>
     </section>
   )
